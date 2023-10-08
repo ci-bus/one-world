@@ -2,7 +2,6 @@ import { v1 as uuidv1 } from 'uuid';
 import Wallet from './wallet';
 import { createHash, elliptic } from '../modules';
 import Elliptic from 'elliptic';
-import Blockchain from '../blockchain/blockchain';
 
 const REWARD = 1;
 
