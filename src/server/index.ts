@@ -1,5 +1,7 @@
-import createMainServer from './main';
+import createMainServer from './main/create';
+import createNodeServer from './node/create';
 
 export {
-  createMainServer
-}
+  createMainServer,
+  createNodeServer
+};

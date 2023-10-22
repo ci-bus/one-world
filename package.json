@@ -10,6 +10,8 @@
     "start": "babel-node dist/main.js",
     "build": "tsc",
     "dev:main": "tsnd --respawn --transpile-only src/main.ts",
+    "dev:node": "tsnd --respawn --transpile-only src/node.ts",
+    "dev:temp": "tsnd --respawn --transpile-only src/temp.ts",
     "test": "jest",
     "test:watch": "jest --watchAll"
   },
@@ -40,6 +42,7 @@
     "dotenv": "^16.3.1",
     "elliptic": "^6.5.4",
     "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
     "uuid": "^9.0.1",
     "ws": "^8.14.2"
   }

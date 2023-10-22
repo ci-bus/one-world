@@ -5,6 +5,6 @@ import Elliptic from 'elliptic';
  * Los nodos usan los sellos para proteger bloques
  */
 export interface Seal {
-  address: string // Dirección de la wallet
+  address: string // Dirección de la wallet / clave publica
   signature: Elliptic.ec.Signature // Firma con clave privada
 }

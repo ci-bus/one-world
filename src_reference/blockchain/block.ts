@@ -27,7 +27,7 @@ class Block {
   }
 
   static getGenesis(): Block {
-    const timestamp = (new Date(2023, 7, 20)).getTime(),
+    const timestamp = (new Date(2023, 8, 20)).getTime(),
       previousHash = '',
       data = 'One World',
       hash = this.hash(timestamp, previousHash, data, 0, DIFFICULTY);

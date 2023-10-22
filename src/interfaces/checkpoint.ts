@@ -1,5 +1,5 @@
 import { Seal } from "./seal"
-import { TransactionOutput } from "./transaction"
+import { TransactionReceive } from "./transaction"
 
 /**
  * Los checkpoints son un resumen de todas las wallets con la cantidad de monedas de cada una
@@ -9,6 +9,6 @@ export interface Checkpoint {
   timestamp: number // Momento de la creación
   previousHash: string // Hash del bloque anterior
   hash: string // Hash actual generado con todos los datos del bloque menos los sellos
-  outputs: TransactionOutput[] // Salidas de monedas
+  outputs: TransactionReceive[] // Salidas de monedas
   seals: Seal[] // Sellos de nodos para darle seguridad
 }

@@ -131,3 +131,6 @@ dist
 
 # macosx
 .DS_Store
+src/data/*.json
+*.bkp
+*.dtmp

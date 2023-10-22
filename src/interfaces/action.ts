@@ -2,7 +2,7 @@
  * Estructura base de los mensajes
  */
 export interface BaseMessage {
-  action: string
+  action: Action
   data?: any
 }
 
@@ -10,6 +10,14 @@ export interface BaseMessage {
  * Acciones que realizan los nodos
  */
 export enum Action {
+  error = 'error',
   ping = 'ping',
-  pong = 'pong'
+  pong = 'pong',
+  connect = 'connect',
+  nodes = 'nodes'
+}
+
+export interface connectNodeData {
+  port: number
+  wallet: string
 }

@@ -1,10 +1,10 @@
-import { BaseMessage } from "../interfaces/action";
+import { Action, BaseMessage } from "../interfaces/action";
 
 export default class BaseAction {
-  public action: string;
+  public action: Action;
   public data: any;
 
-  constructor (action: string, data?: any) {
+  constructor (action: Action, data?: any) {
     this.action = action;
     this.data = data;
   }
