@@ -2,7 +2,7 @@ import { Socket } from "dgram";
 import * as dotenv from 'dotenv';
 dotenv.config();
 import BaseAction from "./base";
-import { Action, ConnectData } from "../interfaces/action";
+import { Action, ConnectData } from "../interfaces/message";
 import { calculateHaversineDistance, checkConnection, getGeoIp, logError, logOk } from "../libraries/utilities";
 import { checkConnectionResult } from "../interfaces/utilities";
 import Node from "../interfaces/node";

@@ -1,19 +1,24 @@
 import dgram, { Socket } from 'dgram';
-import { Action, BaseMessage, ConnectData, ConnectType } from '../../interfaces/action';
-import ping from '../../actions/ping';
+import { MessageType, BaseMessage, ConnectData, ConnectType } from '../interfaces/message';
+import ping from '../actions/ping';
 import chalk from 'chalk';
-import { disconnectNodes, getCloseNodes, logError, logInfo, logOk } from '../../libraries/utilities';
-import Node from '../../interfaces/node';
-import connectNode from '../../actions/connect-node';
-import DataHelper from '../../data/helper';
-import BaseAction from '../../actions/base';
-import updateConecctionNodes from '../../actions/update-connection-nodes';
+import { disconnectNodes, getCloseNodes, logError, logInfo, logOk } from '../libraries/utilities';
+import Node from '../interfaces/node';
+import connectNode from '../actions/connect-node';
+import DataHelper from '../data/helper';
+import BaseAction from '../actions/base';
+
+const messages = {
+  [MessageType.ping]: ping
+}
 
 export default async (server: Socket, message: Buffer, rinfo: dgram.RemoteInfo, nodes: DataHelper) => {
   // Decode JSON messaje
   const messageObj: BaseMessage = JSON.parse(message.toString('utf8'));
   logInfo(`Message ${chalk.blue(messageObj.action)} received from ${chalk.blue(rinfo.address)}:${chalk.blue(rinfo.port)}`);
   // Actions
+  messages[messageObj.action](server, rinfo.port, rinfo.address);
+  /*
   switch (messageObj.action) {
     case Action.ping:
       ping(server, rinfo.port, rinfo.address);
@@ -54,7 +59,7 @@ export default async (server: Socket, message: Buffer, rinfo: dgram.RemoteInfo, 
       const receivedNodes: Node[] = messageObj.data;
       if (receivedNodes.length) {
         logInfo(`Received ${chalk.yellow(receivedNodes.length)} peers`);
-        updateConecctionNodes(nodes, receivedNodes);
+        //updateConecctionNodes(nodes, receivedNodes);
       } else {
         logOk(`You are the first node!`);
       }
@@ -63,4 +68,5 @@ export default async (server: Socket, message: Buffer, rinfo: dgram.RemoteInfo, 
       logError(messageObj.data);
       break;
   }
+  */
 };

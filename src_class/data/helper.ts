@@ -7,7 +7,7 @@ export default class DataHelper {
   private file: string;
 
   constructor(
-    name: string = '0',
+    name: string,
     data: any = '',
     noLoadStoredData?: boolean
   ) {

@@ -2,14 +2,16 @@
  * Estructura base de los mensajes
  */
 export interface BaseMessage {
-  action: Action
+  id: string // UUID v4
+  timestamp: number
+  type: MessageType
   data?: any
 }
 
 /**
  * Acciones que realizan los nodos
  */
-export enum Action {
+export enum MessageType {
   error = 'error',
   ping = 'ping',
   pong = 'pong',

@@ -10,7 +10,7 @@ import chalk from 'chalk';
 import conditionalStatement from './conditional-statement';
 import DataHelper from '../../data/helper';
 
-let nodes = new DataHelper('nodes', [], true);
+let nodes = new DataHelper('main-nodes', [], true);
 
 const createMainServer = (port: number, host: string, publicHost?: string): Socket => {
 

@@ -1,41 +1,11 @@
-import dgram from 'dgram';
 import chalk from 'chalk';
 import https from 'https';
 import http from 'http';
 import * as dotenv from 'dotenv';
 dotenv.config();
-import BaseAction from '../actions/base';
-import { Action } from '../interfaces/action';
-import { checkConnectionResult } from '../interfaces/utilities';
 import DataHelper from '../data/helper';
-import Node from '../interfaces/node';
+import { PeerNode } from '../interfaces/node';
 
-const checkConnection = async (host: string, port: number): Promise<checkConnectionResult> => {
-  return new Promise((ok, fail) => {
-    const start: Date = new Date();
-    const client = dgram.createSocket('udp4');
-    const timeoutId = setTimeout(() => {
-      fail(`${host}:${port} inaccesible desde el exterior.`);
-    }, parseInt(process.env.CHECK_CONECTION_TIMEOUT || '3000'));
-
-    client.on('message', (message, rinfo) => {
-      clearTimeout(timeoutId);
-      const response: BaseAction = JSON.parse(message.toString('utf8'));
-      const { address, port } = rinfo;
-      const end: Date = new Date();
-      const latency = end.getMilliseconds() - start.getMilliseconds();
-      response.action === Action.pong
-        ? ok({ address, port, latency })
-        : fail(`Acción recibida: ${response.action}, se esperaba '${Action.pong}'.`);
-      client.close();
-    });
-
-    client.on('error', fail);
-
-    let action = new BaseAction(Action.ping);
-    client.send(action.getJSONMessage(), port, host, error => error && fail(error));
-  });
-};
 
 const logOk = (text: string) => {
   console.log(`[${chalk.green('OK')}] ${text}`);
@@ -93,7 +63,7 @@ const calculateHaversineDistance = (lat1: number, lon1: number, lat2: number, lo
   return distance;
 }
 
-const sortLocationsByProximity = (nodes: Node[], lat: number, lon: number): Node[] => {
+const sortLocationsByProximity = (nodes: PeerNode[], lat: number, lon: number): PeerNode[] => {
   nodes = nodes.map(node => ({
     ...node,
     proximity: calculateHaversineDistance(lat, lon, node.geoLocation.lat, node.geoLocation.lon)
@@ -102,8 +72,8 @@ const sortLocationsByProximity = (nodes: Node[], lat: number, lon: number): Node
   return nodes;
 }
 
-const getCloseNodes = (nodes: DataHelper, lat: number, lon: number, maxPeers?: number, discardNode?: Node): Node[] => {
-  let filteredNodes: Node[] = [...nodes.getData()];
+const getCloseNodes = (nodes: DataHelper, lat: number, lon: number, maxPeers?: number, discardNode?: PeerNode): PeerNode[] => {
+  let filteredNodes: PeerNode[] = [...nodes.getData()];
   if (discardNode) {
     filteredNodes = filteredNodes.filter(node => node.port != discardNode?.port || node.host != discardNode?.host);
   }
@@ -122,7 +92,6 @@ const disconnectNodes = (nodes: Node[]): Node[] => {
 }
 
 export {
-  checkConnection,
   logOk,
   logInfo,
   logMessage,
