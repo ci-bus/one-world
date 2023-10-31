@@ -1,4 +1,4 @@
-import { Action, BaseMessage } from "../interfaces/action";
+import { Action, MessageBase } from "../interfaces/action";
 
 export default class BaseAction {
   public action: Action;
@@ -9,7 +9,7 @@ export default class BaseAction {
     this.data = data;
   }
 
-  getMessage (): BaseMessage {
+  getMessage (): MessageBase {
     const { action, data } = this;
     return { action, data };
   }

@@ -1,5 +1,5 @@
 import dgram, { Socket } from 'dgram';
-import { MessageType, BaseMessage, ConnectData, ConnectType } from '../interfaces/message';
+import { MessageType, MessageBase, ConnectData, ConnectType } from '../interfaces/message';
 import ping from '../actions/ping';
 import chalk from 'chalk';
 import { disconnectNodes, getCloseNodes, logError, logInfo, logOk } from '../libraries/utilities';
@@ -14,7 +14,7 @@ const messages = {
 
 export default async (server: Socket, message: Buffer, rinfo: dgram.RemoteInfo, nodes: DataHelper) => {
   // Decode JSON messaje
-  const messageObj: BaseMessage = JSON.parse(message.toString('utf8'));
+  const messageObj: MessageBase = JSON.parse(message.toString('utf8'));
   logInfo(`Message ${chalk.blue(messageObj.action)} received from ${chalk.blue(rinfo.address)}:${chalk.blue(rinfo.port)}`);
   // Actions
   messages[messageObj.action](server, rinfo.port, rinfo.address);

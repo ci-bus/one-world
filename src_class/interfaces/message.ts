@@ -1,7 +1,9 @@
+import { NodeAddress, NodeInfo } from "./node"
+
 /**
  * Estructura base de los mensajes
  */
-export interface BaseMessage {
+export interface MessageBase {
   id: string // UUID v4
   timestamp: number
   type: MessageType
@@ -21,19 +23,12 @@ export enum MessageType {
 }
 
 /**
- * Tipo de conexiones nodo><nodo, // TODO user><nodo?
+ * Mensaje en cola esperando respuesta
  */
-export enum ConnectType {
-  node = 'node',
-  user = 'user', // En desuso
-}
-
-/**
- * Datos de conexión, la IP se obtiene del mensaje UDP
- * La wallet se usa de identificador único
- */
-export interface ConnectData {
-  type: ConnectType
-  port: number
-  wallet: string
+export interface TailMessage extends MessageBase {
+  peer: NodeAddress
+  ok: Function
+  fail: Function
+  retries: number // Intentos de enviar el mensaje
+  latency?: number
 }

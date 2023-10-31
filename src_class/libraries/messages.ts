@@ -1,17 +1,10 @@
 import { RemoteInfo } from "dgram";
-import { BaseMessage } from "../interfaces/message";
-import { PeerNode } from "../interfaces/node";
-import { logInfo } from "./utilities";
+import { MessageBase, MessageType, TailMessage } from "../interfaces/message";
+import { NodeAddress, NodeInfo } from "../interfaces/node";
+import { logError, logInfo } from "./utilities";
 import { ServerUDP } from "../node/server";
 import chalk from "chalk";
-
-export interface TailMessage extends BaseMessage {
-  peer: PeerNode
-  ok: Function
-  fail: Function
-  retries: number
-  latency?: number
-}
+import { NodeActions } from "../node/actions";
 
 export class MessagesHelper {
 
@@ -27,11 +20,15 @@ export class MessagesHelper {
   private retries: number;
   // Control to not check timeouts receiving messages
   private receiving: boolean;
+  // Actions to proccess messages and response
+  private actions: NodeActions;
 
   constructor(
-    server: ServerUDP
+    server: ServerUDP,
+    actions: NodeActions
   ) {
     this.server = server;
+    this.actions = actions;
     this.timeout = parseInt(process.env.MESSAGES_TIMEOUT as string) || 1000;
     this.retries = parseInt(process.env.MESSAGE_RETRIES as string) || 3;
     this.createInterval();
@@ -44,7 +41,7 @@ export class MessagesHelper {
     }, timeloop);
   }
 
-  async sendAndReceiveMessage(peer: PeerNode, message: BaseMessage): Promise<TailMessage> {
+  async sendAndReceiveMessage(peer: NodeAddress, message: MessageBase): Promise<TailMessage> {
     return new Promise((ok, fail) => {
       this.messages.push({
         ...message,
@@ -56,29 +53,44 @@ export class MessagesHelper {
     });
   }
 
-  sendMessage(message: BaseMessage, port: number, host: string) {
+  sendMessage(message: MessageBase, port: number, host: string) {
     const messageStr = JSON.stringify(message);
     this.server.socket.send(messageStr, port, host);
     logInfo(`Message type ${chalk.cyan(message.type)} sended to ${chalk.cyan(host)}:${chalk.cyan(port)}`);
   }
 
-  receiveMessage(message: string, remoteInfo: RemoteInfo) {
+  receiveMessage(message: string, rInfo: RemoteInfo) {
     this.receiving = true;
-    const messageObj: BaseMessage = JSON.parse(message);
-    const tailMsgIndex: number = this.messages.findIndex(
-      message => message.id === messageObj.id
-    );
-    if (tailMsgIndex !== -1) {
-      const tailMsg = this.messages[tailMsgIndex];
-      if (tailMsg.peer.host !== remoteInfo.address) {
-        tailMsg.fail(`Host ${tailMsg.peer.host} !== ${remoteInfo.address}`);
-      } else if (tailMsg.timestamp > messageObj.timestamp) {
-        tailMsg.fail(`Received timestamp is earlier thant sent`);
+    try {
+      const messageObj: MessageBase = JSON.parse(message);
+      const tailMsgIndex: number = this.messages.findIndex(
+        message => message.id === messageObj.id
+      );
+      if (tailMsgIndex !== -1) {
+        const tailMsg = this.messages[tailMsgIndex];
+        if (tailMsg.peer.host !== rInfo.address) {
+          tailMsg.fail(`Host ${tailMsg.peer.host} !== ${rInfo.address}`);
+        } else if (tailMsg.timestamp > messageObj.timestamp) {
+          tailMsg.fail(`Received timestamp is earlier thant sent`);
+        } else if (messageObj.type == MessageType.error) {
+          tailMsg.fail(messageObj.data);
+          this.messages.splice(tailMsgIndex, 1);
+        } else {
+          tailMsg.latency = messageObj.timestamp - tailMsg.timestamp;
+          tailMsg.ok({
+            ...tailMsg,
+            ...messageObj
+          });
+          this.messages.splice(tailMsgIndex, 1);
+        }
       } else {
-        this.messages.splice(tailMsgIndex, 1);
-        tailMsg.latency = messageObj.timestamp - tailMsg.timestamp;
-        tailMsg.ok(tailMsg);
+        const response = this.actions.processMessage(messageObj);
+        if (response) {
+          this.sendMessage(response, rInfo.port, rInfo.address);
+        }
       }
+    } catch (error) {
+      logError(`${rInfo.address}:${rInfo.port} ${error}`);
     }
     this.receiving = false;
   }

@@ -3,3 +3,8 @@ export interface checkConnectionResult {
   port: number
   latency: number
 }
+
+export interface GeoLocation {
+  lat: number
+  lon: number
+}

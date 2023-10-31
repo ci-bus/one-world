@@ -2,29 +2,37 @@ import dgram, { Socket } from 'dgram';
 import chalk from "chalk";
 import { v4 as uuidv4 } from 'uuid';
 import { logError, logOk } from "../libraries/utilities";
-import { BaseMessage, MessageType } from '../interfaces/message';
-import { MessagesHelper, TailMessage } from '../libraries/messages';
-import { InfoNode, PeerNode } from '../interfaces/node';
+import { MessageType, TailMessage } from '../interfaces/message';
+import { MessagesHelper } from '../libraries/messages';
+import { NodeInfo, NodePeer } from '../interfaces/node';
+import { NodeActions } from './actions';
+import DataHelper from '../data/helper';
 
 export class ServerUDP {
 
   // Node info
-  nodeInfo: InfoNode;
+  nodeInfo: NodeInfo;
   // Socket udp dgram
   socket: Socket;
   // Messages helper with tail
   messagesHelper: MessagesHelper;
+  // Peers data helper
+  peers: DataHelper;
+  // Actions functions
+  actions: NodeActions;
 
   constructor(
-    nodeInfo: InfoNode
+    nodeInfo: NodeInfo
   ) {
     this.nodeInfo = nodeInfo;
   }
 
-  static async create(nodeInfo: InfoNode): Promise<ServerUDP> {
+  static async create(nodeInfo: NodeInfo): Promise<ServerUDP> {
     const server = new ServerUDP(nodeInfo);
     await server.createSocket();
-    server.messagesHelper = new MessagesHelper(server);
+    server.peers = new DataHelper(`${nodeInfo.wallet}-peers`);
+    server.actions = new NodeActions(server.peers);
+    server.messagesHelper = new MessagesHelper(server, server.actions);
     await server.checkServer();
     return server;
   }
@@ -34,21 +42,7 @@ export class ServerUDP {
     // On receive message from other node
     this.socket.on('message', (message: Buffer, rinfo: dgram.RemoteInfo) => {
       try {
-        const messageObj: BaseMessage = JSON.parse(message.toString('utf8'));
-        //conditionalStatement(this.socket, message, rinfo, new DataHelper());
-        switch (messageObj.type) {
-          case MessageType.ping:
-            const response: BaseMessage = {
-              id: messageObj.id,
-              timestamp: Date.now(),
-              type: MessageType.pong
-            };
-            this.messagesHelper.sendMessage(response, rinfo.port, rinfo.address);
-            break;
-          default:
-            this.messagesHelper.receiveMessage(message.toString('utf8'), rinfo);
-            break;
-        }
+        this.messagesHelper.receiveMessage(message.toString('utf8'), rinfo);
       } catch (error) {
         logError(`${error}`);
       }
@@ -61,9 +55,9 @@ export class ServerUDP {
     });
   }
 
-  async checkServer(count: number = 1) {
+  async checkServer() {
     try {
-      const checkResult: TailMessage = await this.messagesHelper.sendAndReceiveMessage(this.nodeInfo as PeerNode, {
+      const checkResult: TailMessage = await this.messagesHelper.sendAndReceiveMessage(this.nodeInfo as NodePeer, {
         id: uuidv4(),
         timestamp: Date.now(),
         type: MessageType.ping

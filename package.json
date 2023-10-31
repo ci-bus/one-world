@@ -13,6 +13,7 @@
     "dev:node": "tsnd --respawn --transpile-only src/node.ts",
     "dev:node2": "NODE_PORT=10111 tsnd --respawn --transpile-only src/node.ts",
     "node": "tsnd --respawn --transpile-only src_class/node.ts",
+    "node2": "NODE_PORT=10111 tsnd --respawn --transpile-only src_class/node.ts",
     "test": "jest",
     "test:watch": "jest --watchAll"
   },

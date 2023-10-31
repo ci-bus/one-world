@@ -4,7 +4,7 @@ dotenv.config();
 import BaseAction from "./base";
 import { Action, ConnectData } from "../interfaces/message";
 import { calculateHaversineDistance, checkConnection, getGeoIp, logError, logOk } from "../libraries/utilities";
-import { checkConnectionResult } from "../interfaces/utilities";
+import { GeoLocation, checkConnectionResult } from "../interfaces/utilities";
 import Node from "../interfaces/node";
 import DataHelper from "../data/helper";
 import chalk from "chalk";
@@ -18,7 +18,7 @@ export default async (data: ConnectData, address: string, nodes: DataHelper): Pr
       return new BaseAction(Action.error, `The node latency is greater than one second (${(checkResult.latency / 1000).toFixed(2)}s), it cannot connect.`);
     } else {
       // Geo localización del nodo
-      const geoLocation = JSON.parse(await getGeoIp(address));
+      const geoLocation: GeoLocation = await getGeoIp(address);
       if (!geoLocation?.lat || !geoLocation.lon) {
         throw (`Error getting lat lon geo location ip.`);
       }

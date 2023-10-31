@@ -4,7 +4,11 @@ import http from 'http';
 import * as dotenv from 'dotenv';
 dotenv.config();
 import DataHelper from '../data/helper';
-import { PeerNode } from '../interfaces/node';
+import { NodeAddress, NodeInfo, NodePeer } from '../interfaces/node';
+import { GeoLocation } from '../interfaces/utilities';
+import { MessageBase, MessageType } from '../interfaces/message';
+import { randomUUID } from 'crypto';
+import { ServerUDP } from '../node/server';
 
 
 const logOk = (text: string) => {
@@ -35,7 +39,7 @@ const getPublicIp = (): Promise<string> => new Promise((ok, fail) => {
   }).on('error', fail);
 });
 
-const getGeoIp = (ip: string): Promise<string> => new Promise((ok, fail) => {
+const getGeoIp = (ip: string): Promise<GeoLocation> => new Promise((ok, fail) => {
   let url: string = process.env.GEOIP_SERVICE_URL as string;
   url = url.replace('${ip}', ip);
   http.get(url, (response) => {
@@ -44,7 +48,16 @@ const getGeoIp = (ip: string): Promise<string> => new Promise((ok, fail) => {
       data += chunk;
     });
     response.on('end', () => {
-      ok(data);
+      try {
+        const dataObj: GeoLocation = JSON.parse(data);
+        if (dataObj.lat && dataObj.lon) {
+          ok(JSON.parse(data));
+        } else {
+          fail(`Variable does not match expected structure.`);
+        }
+      } catch (error) {
+        fail(error);
+      }
     });
   }).on('error', fail);
 });
@@ -63,7 +76,7 @@ const calculateHaversineDistance = (lat1: number, lon1: number, lat2: number, lo
   return distance;
 }
 
-const sortLocationsByProximity = (nodes: PeerNode[], lat: number, lon: number): PeerNode[] => {
+const sortLocationsByProximity = (nodes: NodePeer[], lat: number, lon: number): NodePeer[] => {
   nodes = nodes.map(node => ({
     ...node,
     proximity: calculateHaversineDistance(lat, lon, node.geoLocation.lat, node.geoLocation.lon)
@@ -72,8 +85,8 @@ const sortLocationsByProximity = (nodes: PeerNode[], lat: number, lon: number): 
   return nodes;
 }
 
-const getCloseNodes = (nodes: DataHelper, lat: number, lon: number, maxPeers?: number, discardNode?: PeerNode): PeerNode[] => {
-  let filteredNodes: PeerNode[] = [...nodes.getData()];
+const getCloseNodes = (nodes: DataHelper, lat: number, lon: number, maxPeers?: number, discardNode?: NodePeer): NodePeer[] => {
+  let filteredNodes: NodePeer[] = [...nodes.getData()];
   if (discardNode) {
     filteredNodes = filteredNodes.filter(node => node.port != discardNode?.port || node.host != discardNode?.host);
   }
@@ -91,6 +104,20 @@ const disconnectNodes = (nodes: Node[]): Node[] => {
   }));
 }
 
+const getLatency = (server: ServerUDP, peer: NodeAddress): Promise<number> => {
+  return new Promise((ok, fail) => {
+    let time = Date.now();
+    const message: MessageBase = {
+      id: randomUUID(),
+      timestamp: Date.now(),
+      type: MessageType.ping,
+    };
+    server.messagesHelper.sendAndReceiveMessage(peer as NodeInfo, message)
+    .then(() => ok(Date.now() - time))
+    .catch(fail);
+  });
+}
+
 export {
   logOk,
   logInfo,
@@ -102,4 +129,5 @@ export {
   sortLocationsByProximity,
   getCloseNodes,
   disconnectNodes,
+  getLatency,
 };

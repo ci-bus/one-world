@@ -1,7 +1,7 @@
 /**
  * Estructura base de los mensajes
  */
-export interface BaseMessage {
+export interface MessageBase {
   action: Action
   data?: any
 }
