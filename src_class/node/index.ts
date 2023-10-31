@@ -33,8 +33,8 @@ export class CryptoNode {
 
   initConsole() {
     consoleReadline.question('\n> ', async command => {
+      const parts = command.split(' ');
       try {
-        const parts = command.split(' ');
         switch (parts[0]) {
           case 'connect':
             const node: NodeAddress = {

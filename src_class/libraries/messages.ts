@@ -13,7 +13,7 @@ export class MessagesHelper {
   // UDP server
   server: ServerUDP;
   // Interval to check timeouts
-  private interval: NodeJS.Timeout;
+  interval: NodeJS.Timeout;
   // Timeout
   private timeout: number;
   // Retries sending messages
@@ -41,15 +41,15 @@ export class MessagesHelper {
     }, timeloop);
   }
 
-  async sendAndReceiveMessage(peer: NodeAddress, message: MessageBase): Promise<TailMessage> {
+  async sendAndReceiveMessage(node: NodeAddress, message: MessageBase): Promise<TailMessage> {
     return new Promise((ok, fail) => {
       this.messages.push({
         ...message,
-        peer,
+        node,
         ok, fail,
         retries: 1
       });
-      this.sendMessage(message, peer.port, peer.host);
+      this.sendMessage(message, node.port, node.host);
     });
   }
 
@@ -68,8 +68,8 @@ export class MessagesHelper {
       );
       if (tailMsgIndex !== -1) {
         const tailMsg = this.messages[tailMsgIndex];
-        if (tailMsg.peer.host !== rInfo.address) {
-          tailMsg.fail(`Host ${tailMsg.peer.host} !== ${rInfo.address}`);
+        if (tailMsg.node.host !== rInfo.address) {
+          tailMsg.fail(`Host ${tailMsg.node.host} !== ${rInfo.address}`);
         } else if (tailMsg.timestamp > messageObj.timestamp) {
           tailMsg.fail(`Received timestamp is earlier thant sent`);
         } else if (messageObj.type == MessageType.error) {
@@ -84,7 +84,7 @@ export class MessagesHelper {
           this.messages.splice(tailMsgIndex, 1);
         }
       } else {
-        const response = this.actions.processMessage(messageObj);
+        const response = this.actions.processMessage(messageObj, this.server);
         if (response) {
           this.sendMessage(response, rInfo.port, rInfo.address);
         }
@@ -100,15 +100,15 @@ export class MessagesHelper {
       for (let i = this.messages.length - 1; i >= 0; i--) {
         const tailMessage = this.messages[i];
         if (tailMessage.timestamp < Date.now() - this.timeout) {
-          const { peer, ok, fail, retries, ...message } = tailMessage;
+          const { node, ok, fail, retries, ...message } = tailMessage;
           if (tailMessage.retries < this.retries) {
             // Send message again
             tailMessage.timestamp = Date.now();
-            this.sendMessage(message, peer.port, peer.host);
+            this.sendMessage(message, node.port, node.host);
             this.messages[i].retries++;
           } else {
             // Remove message
-            fail(`The message ${chalk.red(tailMessage.type)} sent to ${chalk.red(peer.host)}:${chalk.red(peer.port)} was not replied to.`);
+            fail(`The message ${chalk.red(tailMessage.type)} sent to ${chalk.red(node.host)}:${chalk.red(node.port)} was not replied to.`);
             this.messages.splice(i, 1);
           }
         }

@@ -132,5 +132,6 @@ dist
 # macosx
 .DS_Store
 src/data/*.json
+src_class/data/*.json
 *.bkp
 *.dtmp

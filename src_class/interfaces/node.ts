@@ -8,10 +8,10 @@ export interface NodeAddress {
 export interface NodeInfo extends NodeAddress {
   localhost: string
   wallet: string
+  geoLocation: GeoLocation
 }
 
 export interface NodePeer extends NodeInfo {
-  geoLocation: GeoLocation
   latency: number
   connected: number
   proximity?: number

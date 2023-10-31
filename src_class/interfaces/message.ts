@@ -26,7 +26,7 @@ export enum MessageType {
  * Mensaje en cola esperando respuesta
  */
 export interface TailMessage extends MessageBase {
-  peer: NodeAddress
+  node: NodeAddress
   ok: Function
   fail: Function
   retries: number // Intentos de enviar el mensaje
