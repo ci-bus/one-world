@@ -7,6 +7,7 @@ import { NodeInfo, NodePeer } from '../interfaces/node';
 import { NodeActions } from './actions';
 import DataHelper from '../data/helper';
 import { randomUUID } from 'crypto';
+import { CryptoNode } from '.';
 
 export class ServerUDP {
 
@@ -27,10 +28,10 @@ export class ServerUDP {
     this.nodeInfo = nodeInfo;
   }
 
-  static async create(nodeInfo: NodeInfo, peersData: DataHelper): Promise<ServerUDP> {
-    const server = new ServerUDP(nodeInfo);
+  static async create(node: CryptoNode): Promise<ServerUDP> {
+    const server = new ServerUDP(node.info);
     await server.createSocket();
-    server.peersData = peersData;
+    server.peersData = node.peersData;
     server.actions = new NodeActions(server.peersData);
     server.messagesHelper = new MessagesHelper(server, server.actions);
     await server.checkServer();

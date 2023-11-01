@@ -27,14 +27,14 @@ export class CryptoNode {
   static async create(info: NodeInfo) {
     const node = new CryptoNode();
     node.info = info;
-    node.peersData = new DataHelper(`peers-${info.wallet}`, '');
-    node.server = await ServerUDP.create(info, node.peersData);
+    node.peersData = new DataHelper(`${info.wallet}-peers`, '');
+    node.server = await ServerUDP.create(node);
     node.initConsole();
     return node;
   }
 
   initConsole() {
-    consoleReadline.question('\n> ', async command => {
+    consoleReadline.question('\n$ ', async command => {
       const parts = command.split(' ');
       try {
         switch (parts[0]) {

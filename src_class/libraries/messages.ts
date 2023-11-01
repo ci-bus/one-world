@@ -56,14 +56,14 @@ export class MessagesHelper {
   sendMessage(message: MessageBase, port: number, host: string) {
     const messageStr = JSON.stringify(message);
     this.server.socket.send(messageStr, port, host);
-    logMessage(`${chalk.cyan(message.type)} >>> ${chalk.cyan(host)}:${chalk.cyan(port)}`);
+    logMessage(`> [${chalk.cyan(message.type)}] ${chalk.cyan(host)}:${chalk.cyan(port)}`);
   }
 
   async receiveMessage(message: string, rInfo: RemoteInfo) {
     this.receiving = true;
     try {
       const messageObj: MessageBase = JSON.parse(message);
-      logMessage(`${chalk.cyan(messageObj.type)} <<< ${chalk.cyan(rInfo.address)}:${chalk.cyan(rInfo.port)}`);
+      logMessage(`< [${chalk.cyan(messageObj.type)}] ${chalk.cyan(rInfo.address)}:${chalk.cyan(rInfo.port)}`);
       const tailMsgIndex: number = this.messages.findIndex(
         message => message.id === messageObj.id
       );
