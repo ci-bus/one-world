@@ -1,12 +1,12 @@
 import dgram, { Socket } from 'dgram';
 import chalk from "chalk";
-import { v4 as uuidv4 } from 'uuid';
 import { logError, logOk } from "../libraries/utilities";
 import { MessageType, TailMessage } from '../interfaces/message';
 import { MessagesHelper } from '../libraries/messages';
 import { NodeInfo, NodePeer } from '../interfaces/node';
 import { NodeActions } from './actions';
 import DataHelper from '../data/helper';
+import { randomUUID } from 'crypto';
 
 export class ServerUDP {
 
@@ -17,7 +17,7 @@ export class ServerUDP {
   // Messages helper with tail
   messagesHelper: MessagesHelper;
   // Peers data helper
-  peers: DataHelper;
+  peersData: DataHelper;
   // Actions functions
   actions: NodeActions;
 
@@ -27,11 +27,11 @@ export class ServerUDP {
     this.nodeInfo = nodeInfo;
   }
 
-  static async create(nodeInfo: NodeInfo): Promise<ServerUDP> {
+  static async create(nodeInfo: NodeInfo, peersData: DataHelper): Promise<ServerUDP> {
     const server = new ServerUDP(nodeInfo);
     await server.createSocket();
-    server.peers = new DataHelper(`${nodeInfo.wallet}-peers`);
-    server.actions = new NodeActions(server.peers);
+    server.peersData = peersData;
+    server.actions = new NodeActions(server.peersData);
     server.messagesHelper = new MessagesHelper(server, server.actions);
     await server.checkServer();
     return server;
@@ -47,6 +47,10 @@ export class ServerUDP {
         logError(`${error}`);
       }
     });
+    // On error
+    this.socket.on('error', (error: Error) => {
+      logError(error.message);
+    });
     // Init socket
     this.socket.bind({
       address: '0.0.0.0',
@@ -58,7 +62,7 @@ export class ServerUDP {
   async checkServer() {
     try {
       const checkResult: TailMessage = await this.messagesHelper.sendAndReceiveMessage(this.nodeInfo as NodePeer, {
-        id: uuidv4(),
+        id: randomUUID(),
         timestamp: Date.now(),
         type: MessageType.ping
       });

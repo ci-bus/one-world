@@ -23,6 +23,10 @@ const logMessage = (text: string) => {
   console.log(`[${chalk.yellow('MESSAGE')}] ${text}`);
 };
 
+const logWarning = (text: string) => {
+  console.log(`[${chalk.blueBright('WARN')}] ${text}`);
+};
+
 const logError = (text: string) => {
   console.log(`[${chalk.red('ERROR')}] ${text}`);
 };
@@ -122,6 +126,7 @@ export {
   logOk,
   logInfo,
   logMessage,
+  logWarning,
   logError,
   getPublicIp,
   getGeoIp,

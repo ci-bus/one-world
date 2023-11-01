@@ -8,12 +8,12 @@ export default class DataHelper {
 
   constructor(
     name: string,
-    data: any = '',
-    noLoadStoredData?: boolean
+    data: any = undefined
   ) {
     this.file = path.join(__dirname, `${name}.json`);
-    this.data = data;
-    if (!noLoadStoredData) {
+    if (data !== undefined) {
+      this.data = data;
+    } else {
       this.loadStoredData();
     }
   }
@@ -53,14 +53,15 @@ export default class DataHelper {
     if (this.data instanceof Array) {
       let index = -1;
       if (Array.isArray(keyCompare)) {
-        index = this.data.indexOf((item: any) => keyCompare.reduce((previous: any, current: string) => {
+        index = this.data.findIndex((item: any) => keyCompare.reduce((previous: any, current: string) => {
           if (previous) {
-            previous = (item[current] == value[current]);
+            previous = Boolean(item[current] === value[current]);
           }
         }, true));
       } else {
-        index = this.data.indexOf((item: any) => item[keyCompare] == value[keyCompare]);
+        index = this.data.findIndex((item: any) => item[keyCompare] === value[keyCompare]);
       }
+      console.log('index', index);
       if (index !== -1) {
         this.data[index] = {
           ...this.data[index],

@@ -1,7 +1,7 @@
 import { RemoteInfo } from "dgram";
 import { MessageBase, MessageType, TailMessage } from "../interfaces/message";
 import { NodeAddress, NodeInfo } from "../interfaces/node";
-import { logError, logInfo } from "./utilities";
+import { logError, logInfo, logMessage } from "./utilities";
 import { ServerUDP } from "../node/server";
 import chalk from "chalk";
 import { NodeActions } from "../node/actions";
@@ -56,13 +56,14 @@ export class MessagesHelper {
   sendMessage(message: MessageBase, port: number, host: string) {
     const messageStr = JSON.stringify(message);
     this.server.socket.send(messageStr, port, host);
-    logInfo(`Message type ${chalk.cyan(message.type)} sended to ${chalk.cyan(host)}:${chalk.cyan(port)}`);
+    logMessage(`${chalk.cyan(message.type)} >>> ${chalk.cyan(host)}:${chalk.cyan(port)}`);
   }
 
-  receiveMessage(message: string, rInfo: RemoteInfo) {
+  async receiveMessage(message: string, rInfo: RemoteInfo) {
     this.receiving = true;
     try {
       const messageObj: MessageBase = JSON.parse(message);
+      logMessage(`${chalk.cyan(messageObj.type)} <<< ${chalk.cyan(rInfo.address)}:${chalk.cyan(rInfo.port)}`);
       const tailMsgIndex: number = this.messages.findIndex(
         message => message.id === messageObj.id
       );
@@ -70,29 +71,27 @@ export class MessagesHelper {
         const tailMsg = this.messages[tailMsgIndex];
         if (tailMsg.node.host !== rInfo.address) {
           tailMsg.fail(`Host ${tailMsg.node.host} !== ${rInfo.address}`);
-        } else if (tailMsg.timestamp > messageObj.timestamp) {
-          tailMsg.fail(`Received timestamp is earlier thant sent`);
         } else if (messageObj.type == MessageType.error) {
           tailMsg.fail(messageObj.data);
-          this.messages.splice(tailMsgIndex, 1);
         } else {
-          tailMsg.latency = messageObj.timestamp - tailMsg.timestamp;
+          tailMsg.latency = Date.now() - tailMsg.timestamp;
           tailMsg.ok({
             ...tailMsg,
             ...messageObj
           });
-          this.messages.splice(tailMsgIndex, 1);
         }
+        this.messages.splice(tailMsgIndex, 1);
       } else {
-        const response = this.actions.processMessage(messageObj, this.server);
+        const response = await this.actions.processMessage(messageObj, this.server);
         if (response) {
           this.sendMessage(response, rInfo.port, rInfo.address);
         }
       }
     } catch (error) {
       logError(`${rInfo.address}:${rInfo.port} ${error}`);
+    } finally {
+      this.receiving = false;
     }
-    this.receiving = false;
   }
 
   checkTimeouts() {

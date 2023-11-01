@@ -13,7 +13,7 @@
     "dev:node": "tsnd --respawn --transpile-only src/node.ts",
     "dev:node2": "NODE_PORT=10111 tsnd --respawn --transpile-only src/node.ts",
     "node": "tsnd --respawn --transpile-only src_class/node.ts",
-    "node2": "NODE_PORT=10111 tsnd --respawn --transpile-only src_class/node.ts",
+    "node2": "NODE_PORT=10111 NODE_WALLET=qwe tsnd --respawn --transpile-only src_class/node.ts",
     "test": "jest",
     "test:watch": "jest --watchAll"
   },
@@ -46,7 +46,6 @@
     "elliptic": "^6.5.4",
     "express": "^4.18.2",
     "sqlite3": "^5.1.6",
-    "uuid": "^9.0.1",
     "ws": "^8.14.2"
   }
 }
