@@ -4,7 +4,6 @@ import { logError, logOk } from "../libraries/utilities";
 import { MessageType, TailMessage } from '../interfaces/message';
 import { MessagesHelper } from '../libraries/messages';
 import { NodeInfo, NodePeer } from '../interfaces/node';
-import { NodeActions } from './actions';
 import DataHelper from '../data/helper';
 import { randomUUID } from 'crypto';
 import { CryptoNode } from '.';
@@ -19,8 +18,6 @@ export class ServerUDP {
   messagesHelper: MessagesHelper;
   // Peers data helper
   peersData: DataHelper;
-  // Actions functions
-  actions: NodeActions;
 
   constructor(
     nodeInfo: NodeInfo
@@ -32,8 +29,7 @@ export class ServerUDP {
     const server = new ServerUDP(node.info);
     await server.createSocket();
     server.peersData = node.peersData;
-    server.actions = new NodeActions(server.peersData);
-    server.messagesHelper = new MessagesHelper(server, server.actions);
+    server.messagesHelper = new MessagesHelper(server);
     await server.checkServer();
     return server;
   }
