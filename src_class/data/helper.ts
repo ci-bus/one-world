@@ -55,13 +55,13 @@ export default class DataHelper {
       if (Array.isArray(keyCompare)) {
         index = this.data.findIndex((item: any) => keyCompare.reduce((previous: any, current: string) => {
           if (previous) {
-            previous = Boolean(item[current] == value[current]);
+            previous = Boolean(item[current] === value[current]);
           }
+          return previous;
         }, true));
       } else {
         index = this.data.findIndex((item: any) => item[keyCompare] === value[keyCompare]);
       }
-      console.log('index', index);
       if (index !== -1) {
         this.data[index] = {
           ...this.data[index],
