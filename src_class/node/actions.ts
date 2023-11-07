@@ -1,7 +1,8 @@
+import chalk from "chalk";
 import DataHelper from "../data/helper";
 import { MessageBase, MessageType } from "../interfaces/message";
 import { NodePeer } from "../interfaces/node";
-import { getLatency } from "../libraries/utilities";
+import { getLatency, logOk } from "../libraries/utilities";
 import { ServerUDP } from "./server";
 
 export class NodeActions {
@@ -53,7 +54,7 @@ export class NodeActions {
     const peerTimeout = parseInt(process.env.PEERS_CONECTION_TIMEOUT as string);
     let latency = await getLatency(server, peer);
     if (latency > peerTimeout) {
-      throw (`Latency has exceeded the maximum allowable threshold.`);
+      throw (`Latency ${chalk.red(latency)}ms has exceeded the maximum allowable threshold.`);
     }
     const peerNode: NodePeer = {
       ...peer,
@@ -62,7 +63,9 @@ export class NodeActions {
     };
     // Calculate the average latency
     peerNode.latency = (peerNode.latency + latency) / 2 | 0;
+    // Save conection
     this.peersData.updateOrPushData(peerNode, ['host', 'port']);
+    logOk(`Connected to ${chalk.green(peerNode.host)}:${chalk.green(peerNode.port)} with ${chalk.green(peerNode.latency)}ms latency`);
     const thisNode = {
       ...server.nodeInfo,
       latency,

@@ -20,14 +20,11 @@ export class MessagesHelper {
   private retries: number;
   // Control to not check timeouts receiving messages
   private receiving: boolean;
-  // Actions to proccess messages and response
-  actions: NodeActions;
 
   constructor(
     server: ServerUDP
   ) {
     this.server = server;
-    this.actions = new NodeActions(server.peersData);
     this.timeout = parseInt(process.env.MESSAGES_TIMEOUT as string) || 1000;
     this.retries = parseInt(process.env.MESSAGE_RETRIES as string) || 3;
     this.createInterval();
@@ -81,7 +78,7 @@ export class MessagesHelper {
         }
         this.messages.splice(tailMsgIndex, 1);
       } else {
-        const response = await this.actions.processMessage(messageObj, this.server);
+        const response = await this.server.actions.processMessage(messageObj, this.server);
         if (response) {
           this.sendMessage(response, rInfo.port, rInfo.address);
         }

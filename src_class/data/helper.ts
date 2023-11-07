@@ -55,7 +55,7 @@ export default class DataHelper {
       if (Array.isArray(keyCompare)) {
         index = this.data.findIndex((item: any) => keyCompare.reduce((previous: any, current: string) => {
           if (previous) {
-            previous = Boolean(item[current] === value[current]);
+            previous = Boolean(item[current] == value[current]);
           }
         }, true));
       } else {

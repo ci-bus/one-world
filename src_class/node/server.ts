@@ -7,6 +7,7 @@ import { NodeInfo, NodePeer } from '../interfaces/node';
 import DataHelper from '../data/helper';
 import { randomUUID } from 'crypto';
 import { CryptoNode } from '.';
+import { NodeActions } from './actions';
 
 export class ServerUDP {
 
@@ -18,23 +19,26 @@ export class ServerUDP {
   messagesHelper: MessagesHelper;
   // Peers data helper
   peersData: DataHelper;
+  // Node actions
+  actions: NodeActions;
 
   constructor(
-    nodeInfo: NodeInfo
+    node: CryptoNode
   ) {
-    this.nodeInfo = nodeInfo;
+    this.nodeInfo = node.info;
+    this.peersData = node.peersData;
+    this.actions = new NodeActions(this.peersData)
+    this.messagesHelper = new MessagesHelper(this);
+    this.createSocket();
   }
 
   static async create(node: CryptoNode): Promise<ServerUDP> {
-    const server = new ServerUDP(node.info);
-    await server.createSocket();
-    server.peersData = node.peersData;
-    server.messagesHelper = new MessagesHelper(server);
+    const server = new ServerUDP(node);
     await server.checkServer();
     return server;
   }
 
-  async createSocket() {
+  createSocket() {
     this.socket = dgram.createSocket('udp4');
     // On receive message from other node
     this.socket.on('message', (message: Buffer, rinfo: dgram.RemoteInfo) => {
