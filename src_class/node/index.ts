@@ -39,12 +39,13 @@ export class CryptoNode {
       try {
         switch (parts[0]) {
           case 'connect':
+            const address = parts[1].split(':');
             // Node info to connect
             const node: NodeAddress = {
-              host: parts[1],
-              port: parseInt(parts[2]),
+              host: address[0],
+              port: parseInt(address[1]),
             };
-            const geoLocation: GeoLocation = await getGeoIp(parts[1]);
+            const geoLocation: GeoLocation = await getGeoIp(address[0]);
             const latency: number = await getLatency(this.server, node);
             // This node info
             const thisNode: NodePeer = {
