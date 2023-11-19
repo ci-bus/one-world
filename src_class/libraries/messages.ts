@@ -71,10 +71,9 @@ export class MessagesHelper {
           tailMsg.fail(messageObj.data);
         } else {
           tailMsg.latency = Date.now() - tailMsg.timestamp;
-          tailMsg.ok({
-            ...tailMsg,
-            ...messageObj
-          });
+          // Prepre response without ok and fail functions
+          const { ok, fail, ...response } = { ...tailMsg, ...messageObj };
+          tailMsg.ok(response);
         }
         this.messages.splice(tailMsgIndex, 1);
       } else {

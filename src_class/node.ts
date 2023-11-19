@@ -17,5 +17,6 @@ import { NodeInfo } from './interfaces/node';
     wallet,
     geoLocation,
   }
-  CryptoNode.create(info);
+  const node = await CryptoNode.create(info);
+  node.console.init();
 })();
